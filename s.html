@@ -91,56 +91,65 @@
     }
 
     function submitAnswers() {
-      let pageScore = 0;
-      const start = currentPage * questionsPerPage;
-      const questions = allQuestions.slice(start, start + questionsPerPage);
+  let pageScore = 0;
+  const start = currentPage * questionsPerPage;
+  const questions = allQuestions.slice(start, start + questionsPerPage);
 
-      questions.forEach((q, idx) => {
-        const correctAnswers = q.answer.sort();
-        const selectedAnswers = [];
+  questions.forEach((q, idx) => {
+    const correctAnswers = q.answer.sort();
+    const selectedAnswers = [];
 
-        const questionBox = document.getElementById(`question-${idx}`);
-        const inputs = questionBox.querySelectorAll('input[type=checkbox]');
-        const labels = questionBox.querySelectorAll("label");
+    const questionBox = document.getElementById(`question-${idx}`);
+    const inputs = questionBox.querySelectorAll('input[type=checkbox]');
+    const labels = questionBox.querySelectorAll("label");
 
-        inputs.forEach(input => {
-          if (input.checked) selectedAnswers.push(input.value);
-        });
+    // 🧼 أولاً: مسح جميع الألوان السابقة
+    labels.forEach(label => {
+      label.classList.remove('correct', 'incorrect');
+    });
 
-        labels.forEach(label => {
-          const input = document.getElementById(label.getAttribute("for"));
-          const val = input.value;
-          const isCorrect = correctAnswers.includes(val);
-          const isChecked = input.checked;
+    // 📥 جمع الإجابات المحددة
+    inputs.forEach(input => {
+      if (input.checked) selectedAnswers.push(input.value);
+    });
 
-          if (isChecked && isCorrect) {
-            label.classList.add('correct');
-          } else if (isChecked && !isCorrect) {
-            label.classList.add('incorrect');
-          } else if (!isChecked && isCorrect) {
-            label.classList.add('correct');
-          }
-        });
+    // 🎯 تمييز الأجوبة الصحيحة والخاطئة
+    labels.forEach(label => {
+      const input = document.getElementById(label.getAttribute("for"));
+      const val = input.value;
+      const isCorrect = correctAnswers.includes(val);
+      const isChecked = input.checked;
 
-        if (arraysEqual(selectedAnswers.sort(), correctAnswers)) {
-          pageScore++;
-        }
-      });
-
-      globalCorrect += pageScore;
-      globalTotal += questions.length;
-      updateGlobalScore();
-
-      const scoreDiv = document.getElementById('score');
-      scoreDiv.innerText = `نتيجتك في هذه الصفحة: ${pageScore} من ${questions.length}`;
-
-      const isLastPage = (currentPage + 1) * questionsPerPage >= allQuestions.length;
-      if (isLastPage) {
-        scoreDiv.innerText += `\n✅ انتهى الاختبار! نتيجتك النهائية: ${globalTotal} / ${globalCorrect}`;
-      } else {
-        document.getElementById('nextBtn').style.display = 'block';
+      if (isChecked && isCorrect) {
+        label.classList.add('correct');
+      } else if (isChecked && !isCorrect) {
+        label.classList.add('incorrect');
+      } else if (!isChecked && isCorrect) {
+        label.classList.add('correct');
       }
+    });
+
+    // ✅ احتساب النقطة إن كانت كل الأجوبة صحيحة فقط
+    if (arraysEqual(selectedAnswers.sort(), correctAnswers)) {
+      pageScore++;
     }
+  });
+
+  globalCorrect += pageScore;
+  globalTotal += questions.length;
+  updateGlobalScore();
+
+  const scoreDiv = document.getElementById('score');
+  scoreDiv.innerText = `نتيجتك في هذه الصفحة: ${pageScore} من ${questions.length}`;
+
+  const isLastPage = (currentPage + 1) * questionsPerPage >= allQuestions.length;
+  if (isLastPage) {
+    scoreDiv.innerText += `\n✅ انتهى الاختبار! نتيجتك النهائية: ${globalTotal} / ${globalCorrect}`;
+  } else {
+    document.getElementById('nextBtn').style.display = 'block';
+  }
+}
+
 
     function updateGlobalScore() {
       document.getElementById('globalScore').innerText =
