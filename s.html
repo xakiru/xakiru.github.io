@@ -84,7 +84,7 @@
 
     function updateGlobalScore() {
       document.getElementById('globalScore').innerText =
-        `📊 النتيجة الإجمالية: ${globalCorrect} / ${globalTotal}`;
+        `📊 النتيجة الإجمالية: ${globalTotal} / ${globalCorrect}`;
     }
 
     function submitAnswers() {
@@ -120,7 +120,7 @@
 
       const isLastPage = (currentPage + 1) * questionsPerPage >= allQuestions.length;
       if (isLastPage) {
-        document.getElementById('score').innerText += `\n✅ انتهى الاختبار! نتيجتك النهائية: ${globalCorrect} / ${globalTotal}`;
+        document.getElementById('score').innerText += `\n✅ انتهى الاختبار! نتيجتك النهائية: ${globalTotal} / ${globalCorrect}`;
       } else {
         document.getElementById('nextBtn').style.display = 'block';
       }
