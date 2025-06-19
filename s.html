@@ -15,22 +15,29 @@
     .correct { background-color: #d4edda; }
     .incorrect { background-color: #f8d7da; }
     .source { font-size: 0.9rem; color: #6c757d; }
+    .global-score { font-size: 1.1rem; font-weight: bold; text-align: center; color: #0d6efd; margin-bottom: 20px; }
   </style>
 </head>
 <body class="container py-4">
-  <h2 class="mb-4 text-center">اختبار قانوني: 10 أسئلة متتالية</h2>
+  <h2 class="mb-3 text-center">اختبار قانوني: 10 أسئلة متتالية</h2>
+  <div class="global-score" id="globalScore">📊 النتيجة الإجمالية: 0 / 0</div>
   <div id="quiz"></div>
+
   <button id="submitBtn" class="btn btn-primary d-block mx-auto mt-3" onclick="submitAnswers()">تصحيح الأجوبة</button>
   <div id="score" class="text-center mt-4 result"></div>
+
   <button id="nextBtn" class="btn btn-success d-block mx-auto mt-3" onclick="nextPage()" style="display: none">الأسئلة التالية</button>
+  <a href="index.html" class="btn btn-secondary d-block mx-auto mt-3">العودة إلى الرئيسية</a>
 
   <script>
     let allQuestions = [];
     let currentPage = 0;
     const questionsPerPage = 10;
+    let globalCorrect = 0;
+    let globalTotal = 0;
 
     async function loadQuestions() {
-      const response = await fetch('qcm_114.json'); // تأكد من اسم الملف الصحيح
+      const response = await fetch('qcm_114.json'); // تأكد من اسم الملف
       const data = await response.json();
       allQuestions = data;
       renderQuiz();
@@ -75,8 +82,13 @@
       });
     }
 
+    function updateGlobalScore() {
+      document.getElementById('globalScore').innerText =
+        `📊 النتيجة الإجمالية: ${globalCorrect} / ${globalTotal}`;
+    }
+
     function submitAnswers() {
-      let score = 0;
+      let pageScore = 0;
       const start = currentPage * questionsPerPage;
       const questions = allQuestions.slice(start, start + questionsPerPage);
 
@@ -91,7 +103,7 @@
 
           if (input.checked && isCorrect) {
             label.classList.add('correct');
-            score++;
+            pageScore++;
           } else if (input.checked && !isCorrect) {
             label.classList.add('incorrect');
           } else if (!input.checked && isCorrect) {
@@ -100,8 +112,16 @@
         });
       });
 
-      document.getElementById('score').innerText = `نتيجتك: ${score} من ${questions.length}`;
-      if ((currentPage + 1) * questionsPerPage < allQuestions.length) {
+      globalCorrect += pageScore;
+      globalTotal += questions.length;
+      updateGlobalScore();
+
+      document.getElementById('score').innerText = `نتيجتك في هذه الصفحة: ${pageScore} من ${questions.length}`;
+
+      const isLastPage = (currentPage + 1) * questionsPerPage >= allQuestions.length;
+      if (isLastPage) {
+        document.getElementById('score').innerText += `\n✅ انتهى الاختبار! نتيجتك النهائية: ${globalCorrect} / ${globalTotal}`;
+      } else {
         document.getElementById('nextBtn').style.display = 'block';
       }
     }
