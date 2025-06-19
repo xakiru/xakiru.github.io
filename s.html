@@ -28,7 +28,6 @@
 
   <div class="d-flex justify-content-center mt-4 gap-3">
     <button id="nextBtn" class="btn btn-success" onclick="nextPage()" style="display: none">الأسئلة التالية</button>
-    <button class="btn btn-warning" onclick="restartQuiz()">إعادة الاختبار</button>
     <a href="index.html" class="btn btn-secondary">العودة إلى الرئيسية</a>
   </div>
 
@@ -89,7 +88,7 @@
 
     function updateGlobalScore() {
       document.getElementById('globalScore').innerText =
-        `📊 النتيجة الإجمالية: ${globalCorrect} / ${globalTotal}`;
+        `📊 النتيجة الإجمالية: ${globalTotal} / ${globalCorrect}`;
     }
 
     function submitAnswers() {
@@ -125,7 +124,7 @@
 
       const isLastPage = (currentPage + 1) * questionsPerPage >= allQuestions.length;
       if (isLastPage) {
-        scoreDiv.innerText += `\n✅ انتهى الاختبار! نتيجتك النهائية: ${globalCorrect} / ${globalTotal}`;
+        scoreDiv.innerText += `\n✅ انتهى الاختبار! نتيجتك النهائية: ${globalTotal} / ${globalCorrect}`;
       } else {
         document.getElementById('nextBtn').style.display = 'block';
       }
