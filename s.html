@@ -30,7 +30,7 @@
     const questionsPerPage = 10;
 
     async function loadQuestions() {
-      const response = await fetch('qcm_114_cleaned_with_id_source.json'); // تأكد من اسم الملف الصحيح
+      const response = await fetch('qcm_114.json'); // تأكد من اسم الملف الصحيح
       const data = await response.json();
       allQuestions = data;
       renderQuiz();
