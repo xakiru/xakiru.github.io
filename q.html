@@ -30,17 +30,18 @@
   </div>
 
   <script>
+    let allQuestions = [];
     let questions = [];
 
     async function loadQuestions() {
-      const response = await fetch('qcm_114.json'); // تأكد من أن هذا الملف موجود
+      const response = await fetch('qcm_114.json');
       const data = await response.json();
-      questions = data;
+      allQuestions = data;
       loadNewSet();
     }
 
     function loadNewSet() {
-      questions = questions.sort(() => 0.5 - Math.random()).slice(0, 10);
+      questions = allQuestions.sort(() => 0.5 - Math.random()).slice(0, 10);
       renderQuiz();
       document.getElementById('score').innerText = '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -64,7 +65,7 @@
           const inputId = `q${idx}_${choice.label}`;
           qDiv.innerHTML += `
             <div class="form-check">
-              <input class="form-check-input" type="radio" name="q${idx}" id="${inputId}" value="${choice.label}">
+              <input class="form-check-input" type="checkbox" name="q${idx}" id="${inputId}" value="${choice.label}">
               <label class="form-check-label" for="${inputId}">
                 (${choice.label}) ${choice.text}
               </label>
@@ -75,26 +76,39 @@
       });
     }
 
+    function arraysEqual(a, b) {
+      return a.length === b.length && a.every(val => b.includes(val));
+    }
+
     function submitAnswers() {
       let score = 0;
 
       questions.forEach((q, idx) => {
-        const questionBox = document.getElementById(`question-${idx}`);
-        const labels = questionBox.querySelectorAll("label");
+        const selected = [];
+        const correct = q.answer.sort(); // Ensure it's sorted
 
+        const inputs = document.querySelectorAll(`#question-${idx} input[type=checkbox]`);
+        inputs.forEach(input => {
+          if (input.checked) selected.push(input.value);
+        });
+
+        const labels = document.querySelectorAll(`#question-${idx} label`);
         labels.forEach(label => {
-          const input = document.getElementById(label.getAttribute("for"));
-          const isCorrect = input.value === q.answer;
+          const input = document.getElementById(label.getAttribute('for'));
+          const isCorrect = correct.includes(input.value);
 
           if (input.checked && isCorrect) {
             label.classList.add('correct');
-            score++;
           } else if (input.checked && !isCorrect) {
             label.classList.add('incorrect');
           } else if (!input.checked && isCorrect) {
             label.classList.add('correct');
           }
         });
+
+        if (arraysEqual(selected.sort(), correct)) {
+          score++;
+        }
       });
 
       document.getElementById('score').innerText = `نتيجتك: ${score} من 10`;
