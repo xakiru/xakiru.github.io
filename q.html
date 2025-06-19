@@ -14,6 +14,7 @@
     .result { font-weight: bold; font-size: 1.2rem; }
     .correct { background-color: #d4edda; }
     .incorrect { background-color: #f8d7da; }
+    .source { font-size: 0.9rem; color: #6c757d; }
   </style>
 </head>
 <body class="container py-4">
@@ -26,7 +27,7 @@
     let questions = [];
 
     async function loadQuestions() {
-      const response = await fetch('QCM_Moroccan_Criminal_Law.json');
+      const response = await fetch('qcm_114.json'); // تأكد من أن هذا الملف في نفس المجلد
       const data = await response.json();
       questions = data.sort(() => 0.5 - Math.random()).slice(0, 10);
       renderQuiz();
@@ -40,16 +41,23 @@
         const qDiv = document.createElement('div');
         qDiv.className = 'question-box';
         qDiv.id = `question-${idx}`;
-        qDiv.innerHTML = `<p><strong>س${idx + 1}:</strong> ${q.question}</p>`;
+
+        qDiv.innerHTML = `
+          <p><strong>سؤال رقم ${q.id}:</strong> ${q.question}</p>
+          <p class="source">📚 المصدر: ${q.source}</p>
+        `;
+
         q.choices.forEach(choice => {
+          const inputId = `q${idx}_${choice.label}`;
           qDiv.innerHTML += `
             <div class="form-check">
-              <input class="form-check-input" type="radio" name="q${idx}" id="q${idx}_${choice.label}" value="${choice.label}">
-              <label class="form-check-label" for="q${idx}_${choice.label}" data-correct="${choice.label === q.answer}">
+              <input class="form-check-input" type="radio" name="q${idx}" id="${inputId}" value="${choice.label}">
+              <label class="form-check-label" for="${inputId}">
                 (${choice.label}) ${choice.text}
               </label>
             </div>`;
         });
+
         quizContainer.appendChild(qDiv);
       });
     }
@@ -64,14 +72,14 @@
 
         labels.forEach(label => {
           const input = document.getElementById(label.getAttribute("for"));
-          const isCorrect = label.textContent.trim().startsWith(`(${q.answer})`);
+          const isCorrect = input.value === q.answer;
 
-          if (input.checked && input.value === q.answer) {
+          if (input.checked && isCorrect) {
             label.classList.add('correct');
             score++;
-          } else if (input.checked && input.value !== q.answer) {
+          } else if (input.checked && !isCorrect) {
             label.classList.add('incorrect');
-          } else if (!input.checked && input.value === q.answer) {
+          } else if (!input.checked && isCorrect) {
             label.classList.add('correct');
           }
         });
