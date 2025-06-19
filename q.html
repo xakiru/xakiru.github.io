@@ -20,17 +20,30 @@
 <body class="container py-4">
   <h2 class="mb-4 text-center">اختبار قانوني: 10 أسئلة عشوائية</h2>
   <div id="quiz"></div>
+
   <button class="btn btn-primary d-block mx-auto mt-3" onclick="submitAnswers()">تصحيح الأجوبة</button>
   <div id="score" class="text-center mt-4 result"></div>
+
+  <div class="d-flex justify-content-center mt-4 gap-3">
+    <button class="btn btn-success" onclick="loadNewSet()">مجموعة جديدة</button>
+    <a href="index.html" class="btn btn-secondary">العودة إلى الرئيسية</a>
+  </div>
 
   <script>
     let questions = [];
 
     async function loadQuestions() {
-      const response = await fetch('qcm_114.json'); // تأكد من أن هذا الملف في نفس المجلد
+      const response = await fetch('qcm_114.json'); // تأكد من أن هذا الملف موجود
       const data = await response.json();
-      questions = data.sort(() => 0.5 - Math.random()).slice(0, 10);
+      questions = data;
+      loadNewSet();
+    }
+
+    function loadNewSet() {
+      questions = questions.sort(() => 0.5 - Math.random()).slice(0, 10);
       renderQuiz();
+      document.getElementById('score').innerText = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function renderQuiz() {
@@ -66,7 +79,6 @@
       let score = 0;
 
       questions.forEach((q, idx) => {
-        const selected = document.querySelector(`input[name=q${idx}]:checked`);
         const questionBox = document.getElementById(`question-${idx}`);
         const labels = questionBox.querySelectorAll("label");
 
