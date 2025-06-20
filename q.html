@@ -15,6 +15,8 @@
     .correct { background-color: #d4edda; }
     .incorrect { background-color: #f8d7da; }
     .source { font-size: 0.9rem; color: #6c757d; }
+    .correct::before { content: "✅ "; }
+    .incorrect::before { content: "❌ "; }
   </style>
 </head>
 <body class="container py-4">
@@ -84,34 +86,44 @@
       let score = 0;
 
       questions.forEach((q, idx) => {
-        const selected = [];
-        const correct = q.answer.sort(); // Ensure it's sorted
+        const correctAnswers = q.answer.sort();
+        const selectedAnswers = [];
 
-        const inputs = document.querySelectorAll(`#question-${idx} input[type=checkbox]`);
+        const questionBox = document.getElementById(`question-${idx}`);
+        const inputs = questionBox.querySelectorAll('input[type=checkbox]');
+        const labels = questionBox.querySelectorAll("label");
+
+        // Clear previous styles
+        labels.forEach(label => label.classList.remove('correct', 'incorrect'));
+
+        // Collect selected values
         inputs.forEach(input => {
-          if (input.checked) selected.push(input.value);
+          if (input.checked) selectedAnswers.push(input.value);
         });
 
-        const labels = document.querySelectorAll(`#question-${idx} label`);
+        // Show which answers were correct and which not
         labels.forEach(label => {
           const input = document.getElementById(label.getAttribute('for'));
-          const isCorrect = correct.includes(input.value);
+          const val = input.value;
+          const isCorrect = correctAnswers.includes(val);
+          const isChecked = input.checked;
 
-          if (input.checked && isCorrect) {
+          if (isChecked && isCorrect) {
             label.classList.add('correct');
-          } else if (input.checked && !isCorrect) {
+          } else if (isChecked && !isCorrect) {
             label.classList.add('incorrect');
-          } else if (!input.checked && isCorrect) {
+          } else if (!isChecked && isCorrect) {
             label.classList.add('correct');
           }
         });
 
-        if (arraysEqual(selected.sort(), correct)) {
+        // Only give point if all correct and no wrong
+        if (arraysEqual(selectedAnswers.sort(), correctAnswers)) {
           score++;
         }
       });
 
-      document.getElementById('score').innerText = `نتيجتك: ${score} من 10`;
+      document.getElementById('score').innerText = `✅ نتيجتك: ${score} من 10`;
     }
 
     loadQuestions();
