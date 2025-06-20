@@ -16,6 +16,8 @@
     .incorrect { background-color: #f8d7da; }
     .source { font-size: 0.9rem; color: #6c757d; }
     .global-score { font-size: 1.1rem; font-weight: bold; text-align: center; color: #0d6efd; margin-bottom: 20px; }
+    .correct::before { content: "✅ "; }
+    .incorrect::before { content: "❌ "; }
   </style>
 </head>
 <body class="container py-4">
@@ -47,35 +49,31 @@
 
     function renderQuiz() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      const quizContainer = document.getElementById('quiz');
-      const scoreDiv = document.getElementById('score');
-      scoreDiv.innerText = '';
+      document.getElementById('score').innerText = '';
       document.getElementById('nextBtn').style.display = 'none';
 
+      const quizContainer = document.getElementById('quiz');
       quizContainer.innerHTML = '';
+
       const start = currentPage * questionsPerPage;
       const end = start + questionsPerPage;
       const questions = allQuestions.slice(start, end);
 
-      questions.forEach((q, localIdx) => {
+      questions.forEach((q, idx) => {
         const qDiv = document.createElement('div');
         qDiv.className = 'question-box';
-        qDiv.id = `question-${localIdx}`;
-
-        const questionId = q.id !== undefined ? q.id : 'غير معروف';
-        const source = q.source ? q.source : 'غير محدد';
+        qDiv.id = `question-${idx}`;
 
         qDiv.innerHTML = `
-          <p><strong>سؤال رقم ${questionId}:</strong> ${q.question}</p>
-          <p class="source">📚 المصدر: ${source}</p>
+          <p><strong>سؤال رقم ${q.id ?? 'غير معروف'}:</strong> ${q.question}</p>
+          <p class="source">📚 المصدر: ${q.source ?? 'غير محدد'}</p>
         `;
 
         q.choices.forEach(choice => {
-          const inputId = `q${localIdx}_${choice.label}`;
+          const inputId = `q${idx}_${choice.label}`;
           qDiv.innerHTML += `
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="q${localIdx}" id="${inputId}" value="${choice.label}">
+              <input class="form-check-input" type="checkbox" name="q${idx}" id="${inputId}" value="${choice.label}">
               <label class="form-check-label" for="${inputId}">
                 (${choice.label}) ${choice.text}
               </label>
@@ -91,69 +89,62 @@
     }
 
     function submitAnswers() {
-  let pageScore = 0;
-  const start = currentPage * questionsPerPage;
-  const questions = allQuestions.slice(start, start + questionsPerPage);
+      let pageScore = 0;
+      const start = currentPage * questionsPerPage;
+      const questions = allQuestions.slice(start, start + questionsPerPage);
 
-  questions.forEach((q, idx) => {
-    const correctAnswers = q.answer.sort();
-    const selectedAnswers = [];
+      questions.forEach((q, idx) => {
+        const correctAnswers = q.answer.sort();
+        const selectedAnswers = [];
 
-    const questionBox = document.getElementById(`question-${idx}`);
-    const inputs = questionBox.querySelectorAll('input[type=checkbox]');
-    const labels = questionBox.querySelectorAll("label");
+        const questionBox = document.getElementById(`question-${idx}`);
+        const inputs = questionBox.querySelectorAll('input[type=checkbox]');
+        const labels = questionBox.querySelectorAll("label");
 
-    // 🧼 أولاً: مسح جميع الألوان السابقة
-    labels.forEach(label => {
-      label.classList.remove('correct', 'incorrect');
-    });
+        labels.forEach(label => label.classList.remove('correct', 'incorrect'));
 
-    // 📥 جمع الإجابات المحددة
-    inputs.forEach(input => {
-      if (input.checked) selectedAnswers.push(input.value);
-    });
+        inputs.forEach(input => {
+          if (input.checked) selectedAnswers.push(input.value);
+        });
 
-    // 🎯 تمييز الأجوبة الصحيحة والخاطئة
-    labels.forEach(label => {
-      const input = document.getElementById(label.getAttribute("for"));
-      const val = input.value;
-      const isCorrect = correctAnswers.includes(val);
-      const isChecked = input.checked;
+        labels.forEach(label => {
+          const input = document.getElementById(label.getAttribute("for"));
+          const val = input.value;
+          const isCorrect = correctAnswers.includes(val);
+          const isChecked = input.checked;
 
-      if (isChecked && isCorrect) {
-        label.classList.add('correct');
-      } else if (isChecked && !isCorrect) {
-        label.classList.add('incorrect');
-      } else if (!isChecked && isCorrect) {
-        label.classList.add('correct');
+          if (isChecked && isCorrect) {
+            label.classList.add('correct');
+          } else if (isChecked && !isCorrect) {
+            label.classList.add('incorrect');
+          } else if (!isChecked && isCorrect) {
+            label.classList.add('correct');
+          }
+        });
+
+        if (arraysEqual(selectedAnswers.sort(), correctAnswers)) {
+          pageScore++;
+        }
+      });
+
+      globalCorrect += pageScore;
+      globalTotal += questions.length;
+      updateGlobalScore();
+
+      const scoreDiv = document.getElementById('score');
+      scoreDiv.innerText = `نتيجتك في هذه الصفحة: ${pageScore} من ${questions.length}`;
+
+      const isLastPage = (currentPage + 1) * questionsPerPage >= allQuestions.length;
+      if (isLastPage) {
+        scoreDiv.innerText += `\n✅ انتهى الاختبار! نتيجتك النهائية: ${globalCorrect} / ${globalTotal}`;
+      } else {
+        document.getElementById('nextBtn').style.display = 'block';
       }
-    });
-
-    // ✅ احتساب النقطة إن كانت كل الأجوبة صحيحة فقط
-    if (arraysEqual(selectedAnswers.sort(), correctAnswers)) {
-      pageScore++;
     }
-  });
-
-  globalCorrect += pageScore;
-  globalTotal += questions.length;
-  updateGlobalScore();
-
-  const scoreDiv = document.getElementById('score');
-  scoreDiv.innerText = `نتيجتك في هذه الصفحة: ${pageScore} من ${questions.length}`;
-
-  const isLastPage = (currentPage + 1) * questionsPerPage >= allQuestions.length;
-  if (isLastPage) {
-    scoreDiv.innerText += `\n✅ انتهى الاختبار! نتيجتك النهائية: ${globalTotal} / ${globalCorrect}`;
-  } else {
-    document.getElementById('nextBtn').style.display = 'block';
-  }
-}
-
 
     function updateGlobalScore() {
       document.getElementById('globalScore').innerText =
-        `📊 النتيجة الإجمالية: ${globalTotal} / ${globalCorrect}`;
+        `📊 النتيجة الإجمالية: ${globalCorrect} / ${globalTotal}`;
     }
 
     function nextPage() {
